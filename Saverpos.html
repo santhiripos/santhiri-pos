@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ဆန်းသီရိ ကုန်စုံဆိုင် - Cloud POS</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Myanmar Text', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1a1a2e, #16213e);
+    color: #e2e8f0;
+    padding: 12px;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #f59e0b, #ef4444); border-radius: 10px; }
+::-webkit-scrollbar-track { background: #1e293b; }
+.main-container { max-width: 1600px; margin: auto; }
+
+.header {
+    background: linear-gradient(135deg, #1e293b, #0f172a, #1a1a2e);
+    padding: 18px 28px;
+    border-radius: 24px;
+    border: 2px solid #f59e0b;
+    box-shadow: 0 0 50px rgba(245, 158, 11, 0.15);
+    margin-bottom: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+.header .brand h1 {
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 300% 300%;
+    animation: gradientShift 4s ease-in-out infinite;
+}
+@keyframes gradientShift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+.header .brand .sub { font-size: 14px; color: #94a3b8; letter-spacing: 4px; margin-top: 2px; }
+.header .brand .owner { font-size: 13px; color: #fbbf24; letter-spacing: 2px; font-weight: 600; }
+.header .brand .owner span { color: #94a3b8; font-weight: 400; }
+
+.cloud-status {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 16px; border-radius: 30px;
+    font-size: 13px; font-weight: 600;
+    background: #1e293b; border: 2px solid #334155;
+}
+.cloud-status.online { border-color: #10b981; color: #10b981; }
+.cloud-status.offline { border-color: #ef4444; color: #ef4444; }
+.cloud-status .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: currentColor;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+.digital-clock {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    padding: 10px 24px; border-radius: 60px;
+    border: 2px solid #f59e0b;
+    font-size: 24px; font-weight: 700; color: #fbbf24;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 4px;
+}
+.digital-clock .date { font-size: 12px; color: #94a3b8; font-family: 'Myanmar Text', sans-serif; letter-spacing: 1px; margin-left: 8px; }
+
+.holiday-badge {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    padding: 6px 18px; border-radius: 30px;
+    font-weight: 700; font-size: 14px;
+    display: none;
+}
+
+.contact-bar {
+    display: flex; gap: 15px; flex-wrap: wrap;
+    padding: 10px 20px; background: #1e293b;
+    border-radius: 16px; border: 1px solid #334155;
+    margin-bottom: 16px; align-items: center; justify-content: center;
+}
+.contact-bar .item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #94a3b8; }
+.contact-bar .item .icon { font-size: 18px; }
+.contact-bar .item .label { color: #64748b; font-size: 12px; }
+.contact-bar .item .value { color: #e2e8f0; font-weight: 500; }
+
+.backup-bar {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 16px; padding: 12px 18px;
+    background: #1e293b; border-radius: 16px;
+    border: 2px solid #334155; align-items: center;
+}
+.backup-bar .label { color: #94a3b8; font-size: 14px; font-weight: 600; }
+.backup-bar button {
+    padding: 8px 20px; border: none; border-radius: 30px;
+    font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 14px;
+}
+.backup-bar button:hover { transform: scale(1.05); }
+.btn-sample { background: #8b5cf6; color: #fff; }
+.btn-clear-all { background: #ef4444; color: #fff; }
+.btn-reorder { background: #f97316; color: #fff; }
+.btn-live { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.btn-capital { background: #06b6d4; color: #fff; }
+
+.low-stock-alert {
+    background: linear-gradient(135deg, #450a0a, #7f1d1d);
+    border: 3px solid #ef4444;
+    padding: 14px 20px; border-radius: 16px;
+    margin-bottom: 16px; display: none;
+}
+.low-stock-alert .title { font-size: 20px; font-weight: 800; color: #f87171; }
+.low-stock-alert .list { font-size: 16px; color: #fca5a5; margin-top: 6px; }
+.low-stock-alert .list span {
+    display: inline-block; background: #7f1d1d;
+    padding: 4px 14px; border-radius: 20px;
+    margin: 3px 6px; border: 1px solid #ef4444;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px,1fr));
+    gap: 12px; margin-bottom: 16px;
+}
+.d-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    padding: 16px 20px; border-radius: 16px;
+    border-left: 5px solid #3b82f6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.d-card .label { font-size: 12px; color: #94a3b8; }
+.d-card .value { font-size: 24px; font-weight: 800; color: #f1f5f9; }
+.d-card .sub { font-size: 12px; color: #60a5fa; }
+
+.live-dashboard {
+    background: linear-gradient(135deg, #0f172a, #1a1a2e, #16213e);
+    border: 3px solid #f59e0b; border-radius: 20px;
+    padding: 24px 30px; margin-bottom: 16px; display: none;
+}
+.live-dashboard.active { display: block; }
+.live-dashboard .live-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid #334155; padding-bottom: 14px; margin-bottom: 18px;
+}
+.live-dashboard .live-header h2 {
+    font-size: 28px; font-weight: 800;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.live-dashboard .live-header .live-time { font-size: 24px; color: #60a5fa; font-family: 'Courier New', monospace; }
+.live-dashboard .live-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.live-dashboard .live-grid .live-card {
+    background: #1e293b; padding: 18px 22px;
+    border-radius: 14px; border-left: 5px solid #10b981;
+}
+.live-dashboard .live-grid .live-card .live-label { font-size: 16px; color: #94a3b8; }
+.live-dashboard .live-grid .live-card .live-value { font-size: 32px; font-weight: 800; color: #f1f5f9; }
+.live-dashboard .live-grid .live-card .live-sub { font-size: 14px; color: #60a5fa; }
+
+.main-grid { display: grid; grid-template-columns: 1fr 400px; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+
+.left-panel { background: #1e293b; border-radius: 20px; padding: 16px; border: 2px solid #334155; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+.panel-header h2 { font-size: 18px; color: #f1f5f9; }
+.panel-header .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.panel-header .admin-actions button {
+    padding: 6px 14px; border: none; border-radius: 30px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.btn-add { background: #10b981; color: #fff; }
+.btn-purchase { background: #3b82f6; color: #fff; }
+.btn-credit { background: #ec4899; color: #fff; }
+.btn-holiday { background: #f59e0b; color: #fff; }
+.btn-history { background: #8b5cf6; color: #fff; }
+
+.search-area { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.search-area input, .search-area select {
+    padding: 8px 14px; border-radius: 30px;
+    border: 2px solid #334155; background: #0f172a;
+    color: #e2e8f0; font-size: 14px;
+}
+.search-area input:focus { outline: none; border-color: #f59e0b; }
+.search-area input { min-width: 180px; flex:1; }
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+    gap: 10px; max-height: 500px;
+    overflow-y: auto; padding-right: 4px;
+}
+.p-card {
+    background: #0f172a; border-radius: 12px;
+    padding: 12px 8px; text-align: center;
+    cursor: pointer; transition: 0.3s;
+    border: 2px solid #1e293b; position: relative;
+}
+.p-card:hover { border-color: #f59e0b; transform: translateY(-4px); }
+.p-card .p-emoji { font-size: 32px; display: block; margin-bottom: 4px; }
+.p-card .p-name { font-weight: 600; font-size: 14px; color: #f1f5f9; }
+.p-card .p-sell { color: #fbbf24; font-weight: 700; font-size: 17px; }
+.p-card .p-buy { font-size: 12px; color: #94a3b8; text-decoration: line-through; }
+.p-card .p-stock { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+.p-card .p-exp { font-size: 10px; background: #450a0a; color: #f87171; padding: 1px 8px; border-radius: 20px; display: inline-block; }
+.p-card .p-actions { position: absolute; top: 4px; right: 4px; display: flex; gap: 4px; }
+.p-card .p-actions button {
+    width: 22px; height: 22px; border: none; border-radius: 50%;
+    font-size: 12px; cursor: pointer;
+}
+.p-card .p-actions .edit-btn { background: #3b82f6; color: #fff; }
+.p-card .p-actions .del-btn { background: #ef4444; color: #fff; }
+
+.right-panel {
+    background: #1e293b; border-radius: 20px; padding: 16px;
+    border: 2px solid #334155; display: flex;
+    flex-direction: column; max-height: 780px;
+}
+.right-panel h2 {
+    font-size: 18px; color: #f1f5f9;
+    border-bottom: 2px solid #334155;
+    padding-bottom: 10px; display: flex; justify-content: space-between;
+}
+.cart-list { flex: 1; overflow-y: auto; margin: 10px 0; }
+.cart-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid #334155;
+}
+.cart-item .ci-info { flex: 1; }
+.cart-item .ci-info .ci-name { font-weight: 500; color: #f1f5f9; font-size: 14px; }
+.cart-item .ci-info .ci-detail { font-size: 12px; color: #94a3b8; }
+.cart-item .ci-qty { display: flex; align-items: center; gap: 6px; }
+.cart-item .ci-qty button {
+    width: 24px; height: 24px; border-radius: 50%; border: none;
+    background: #334155; color: #f1f5f9; font-weight: 700; cursor: pointer;
+}
+.cart-item .ci-qty button:hover { background: #f59e0b; }
+.cart-item .ci-qty span { min-width: 20px; text-align: center; font-weight: 600; color: #f1f5f9; }
+.cart-item .ci-total { font-weight: 700; color: #fbbf24; min-width: 60px; text-align: right; font-size: 14px; }
+
+.cart-summary { border-top: 2px solid #334155; padding-top: 12px; }
+.cart-summary .cs-line { display: flex; justify-content: space-between; padding: 3px 0; font-size: 14px; }
+.cart-summary .cs-line.total {
+    font-size: 20px; font-weight: 800; color: #f1f5f9;
+    border-top: 2px dashed #334155; padding-top: 10px; margin-top: 4px;
+}
+.cart-summary .cs-line .label { color: #94a3b8; }
+
+.payment-method { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+.payment-method button {
+    flex:1; padding: 8px; border: 2px solid #334155;
+    border-radius: 30px; background: #0f172a;
+    color: #e2e8f0; cursor: pointer; font-weight: 600;
+}
+.payment-method button.active { border-color: #f59e0b; background: #1e293b; color: #fbbf24; }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.actions button {
+    padding: 12px; border: none; border-radius: 30px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.btn-checkout { background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; }
+.btn-receipt { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+.btn-clear { background: #334155; color: #f1f5f9; }
+.btn-report { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #fff; grid-column: span 2; }
+.btn-dayreport { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; grid-column: span 2; }
+
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.tabs button {
+    padding: 8px 20px; border: 2px solid #334155;
+    border-radius: 30px; background: #0f172a;
+    color: #94a3b8; font-weight: 600; cursor: pointer;
+}
+.tabs button.active { border-color: #f59e0b; background: #1e293b; color: #fbbf24; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+    z-index: 1000; justify-content: center; align-items: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: #1e293b; border-radius: 24px; padding: 28px;
+    max-width: 800px; width: 95%; max-height: 85vh;
+    overflow-y: auto; border: 2px solid #f59e0b;
+}
+.modal h2 { color: #f1f5f9; border-bottom: 2px solid #334155; padding-bottom: 12px; }
+.modal .close-btn {
+    float: right; background: #ef4444; color: #fff; border: none;
+    padding: 6px 18px; border-radius: 30px; cursor: pointer; font-weight: 700;
+}
+.modal label { display: block; color: #94a3b8; margin-top: 12px; font-size: 14px; }
+.modal input, .modal select {
+    width: 100%; padding: 10px 14px; border-radius: 30px;
+    border: 2px solid #334155; background: #0f172a;
+    color: #e2e8f0; font-size: 14px; margin-top: 4px;
+}
+.modal input:focus { outline: none; border-color: #f59e0b; }
+.modal .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+.modal .modal-actions button {
+    flex:1; padding: 12px; border: none; border-radius: 30px;
+    font-weight: 700; cursor: pointer;
+}
+.modal .modal-actions .save-btn { background: #f59e0b; color: #0f172a; }
+.modal .modal-actions .cancel-btn { background: #334155; color: #f1f5f9; }
+
+.purchase-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+.purchase-table th { background: #0f172a; padding: 10px; text-align: left; border-bottom: 2px solid #f59e0b; }
+.purchase-table td { padding: 8px 10px; border-bottom: 1px solid #334155; }
+.purchase-total { margin-top: 12px; font-size: 18px; font-weight: 700; color: #fbbf24; text-align: right; }
+
+.history-item, .credit-item, .reorder-item, .dayreport-item,
+.purchase-record-item, .expense-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; background: #0f172a; border-radius: 10px;
+    margin-bottom: 6px; flex-wrap: wrap; gap: 6px;
+}
+.history-item .info, .credit-item .info, .purchase-record-item .info, .expense-item .info { flex:1; }
+.history-item .info .date { color: #fbbf24; font-weight: 600; }
+.history-item .info .detail, .credit-item .info .phone { font-size: 13px; color: #94a3b8; }
+.history-item .amount, .credit-item .amount { color: #f59e0b; font-weight: 700; }
+.history-item .actions button, .credit-item .actions button,
+.reorder-item .actions button, .dayreport-item .actions button,
+.purchase-record-item .actions button, .expense-item .actions button {
+    padding: 4px 12px; border: none; border-radius: 20px;
+    font-size: 12px; font-weight: 600; cursor: pointer; margin-left: 4px;
+}
+.edit-h, .edit-c, .edit-r, .edit-d, .edit-pr, .edit-e { background: #3b82f6; color: #fff; }
+.del-h, .del-c, .del-r, .del-d, .del-pr, .del-e { background: #ef4444; color: #fff; }
+.pay-c { background: #10b981; color: #fff; }
+
+.toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: #f1f5f9; padding: 14px 32px;
+    border-radius: 40px; font-size: 16px; display: none; z-index: 2000;
+    border: 2px solid #f59e0b;
+}
+.toast.show { display: block; }
+
+@media (max-width: 768px) {
+    .header .brand h1 { font-size: 24px; }
+    .digital-clock { font-size: 18px; padding: 8px 16px; }
+    .digital-clock .date { font-size: 10px; display: block; }
+    .live-dashboard .live-grid { grid-template-columns: 1fr; }
+    .main-grid { grid-template-columns: 1fr; }
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); }
+    .dashboard { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="main-container">
+    <div class="header">
+        <div class="brand">
+            <h1>🌟 ဆန်းသီရိ ကုန်စုံဆိုင်</h1>
+            <div class="owner">👤 San Htun Lynn <span>| ပိုင်ရှင်</span></div>
+            <div class="sub">✨ Cloud POS ✨</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <div class="cloud-status" id="cloudStatus">
+                <span class="dot"></span>
+                <span id="cloudStatusText">ချိတ်ဆက်နေသည်...</span>
+            </div>
+            <div class="digital-clock">
+                <span id="clockDisplay">00:00:00</span>
+                <span class="date" id="dateDisplay"></span>
+            </div>
+        </div>
+        <div id="holidayBadge" class="holiday-badge">🔴 ယနေ့ နေ့ပိတ်</div>
+    </div>
+
+    <div class="contact-bar">
+        <div class="item"><span class="icon">📞</span> <span class="label">ဖုန်း:</span> <span class="value">09672124213</span></div>
+        <div class="item"><span class="icon">✉️</span> <span class="label">Email:</span> <span class="value">traderlynn21@gmail.com</span></div>
+        <div class="item"><span class="icon">📍</span> <span class="label">လိပ်စာ:</span> <span class="value">Yangon City</span></div>
+    </div>
+
+    <div class="backup-bar">
+        <span class="label">📦 ဒေတာစီမံ</span>
+        <button class="btn-sample" onclick="loadSampleData()">📋 နမူနာ</button>
+        <button class="btn-clear-all" onclick="clearAllData()">🗑️ ရှင်းမည်</button>
+        <button class="btn-reorder" onclick="showReorderList()">📦 Auto Re-order</button>
+        <button class="btn-live" onclick="toggleLive()">📺 Live</button>
+        <button class="btn-capital" onclick="openCapitalManager()">💰 မတည်ငွေ</button>
+        <span style="color:#64748b;font-size:13px;margin-left:auto;" id="dataInfo">ပစ္စည်း ၀ ခု</span>
+    </div>
+
+    <div class="low-stock-alert" id="lowStockAlert">
+        <div class="title">⚠️ စတော့နည်းနေသော ပစ္စည်းများ</div>
+        <div class="list" id="lowStockAlertList"></div>
+    </div>
+
+    <div class="live-dashboard" id="liveDashboard">
+        <div class="live-header">
+            <h2>📺 Live Dashboard</h2>
+            <div class="live-time" id="liveTime">00:00:00</div>
+        </div>
+        <div class="live-grid">
+            <div class="live-card"><div class="live-label">💰 ယနေ့ရောင်းရငွေ</div><div class="live-value" id="liveTodaySales">0 ကျပ်</div><div class="live-sub" id="liveTodayCount">0 လက်ခံ</div></div>
+            <div class="live-card" style="border-left-color:#f59e0b;"><div class="live-label">📈 ယနေ့အမြတ်</div><div class="live-value" id="liveTodayProfit">0 ကျပ်</div><div class="live-sub" id="liveProfitMargin">0%</div></div>
+            <div class="live-card" style="border-left-color:#8b5cf6;"><div class="live-label">💰 မတည်ငွေ</div><div class="live-value" id="liveCapital">0 ကျပ်</div><div class="live-sub" id="liveTotalProfit">0 ကျပ်</div></div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="d-card"><div class="label">📦 စုစုပေါင်းပစ္စည်း</div><div class="value" id="totalProducts">0</div></div>
+        <div class="d-card"><div class="label">💰 ယနေ့ရောင်းရငွေ</div><div class="value" id="todaySales">0</div><div class="sub" id="todayCount">0 လက်ခံ</div></div>
+        <div class="d-card"><div class="label">📈 ယနေ့အမြတ်</div><div class="value" id="todayProfit">0</div><div class="sub" id="profitMargin">0%</div></div>
+        <div class="d-card"><div class="label">⚠️ စတော့နည်း</div><div class="value" id="lowStockCount">0</div><div class="sub" id="lowStockList">-</div></div>
+        <div class="d-card"><div class="label">🧾 အရောင်းအရေအတွက်</div><div class="value" id="todayTransactions">0</div></div>
+        <div class="d-card"><div class="label">💳 အကြွေး</div><div class="value" id="totalCredit">0</div><div class="sub" id="creditCount">0 ဦး</div></div>
+        <div class="d-card"><div class="label">💰 မတည်ငွေ</div><div class="value" id="capitalDisplay">0</div></div>
+        <div class="d-card"><div class="label">📊 ၇ ရက်အမြတ်</div><div class="value" id="weeklyProfitDisplay">0</div></div>
+    </div>
+
+    <div class="tabs">
+        <button class="active" data-tab="tabSales">🛒 ရောင်းအား</button>
+        <button data-tab="tabPurchase">📦 အဝယ်တော်</button>
+        <button data-tab="tabExpense">💸 အသုံးစရိတ်</button>
+        <button data-tab="tabCredit">💳 အကြွေး</button>
+    </div>
+
+    <div id="tabSales" class="tab-content active">
+        <div class="main-grid">
+            <div class="left-panel">
+                <div class="panel-header">
+                    <h2>🛒 ကုန်ပစ္စည်းများ</h2>
+                    <div class="admin-actions">
+                        <button class="btn-add" onclick="openAddProduct()">➕ အသစ်</button>
+                        <button class="btn-purchase" onclick="openPurchase()">📦 ကုန်ဝယ်</button>
+                        <button class="btn-credit" onclick="openCreditManager()">💳 အကြွေး</button>
+                        <button class="btn-holiday" onclick="openHolidayManager()">📅 နေ့ပိတ်</button>
+                        <button class="btn-history" onclick="openHistoryManager()">📜 မှတ်တမ်း</button>
+                    </div>
+                </div>
+                <div class="search-area">
+                    <input type="text" id="searchInput" placeholder="🔍 ရှာရန်..." oninput="renderProducts()" />
+                    <select id="categoryFilter" onchange="renderProducts()"><option value="all">အားလုံး</option></select>
+                </div>
+                <div class="product-grid" id="productGrid"></div>
+            </div>
+
+            <div class="right-panel">
+                <h2>🧺 ခြင်းတောင်း <span id="cartCount">0</span></h2>
+                <div class="cart-list" id="cartItems"><p style="color:#64748b;text-align:center;padding:20px 0;">ပစ္စည်းမရှိသေးပါ</p></div>
+                <div class="cart-summary">
+                    <div class="cs-line"><span class="label">အရေအတွက်</span><span id="itemCount">0</span></div>
+                    <div class="cs-line"><span class="label">ဝယ်စျေး</span><span id="totalBuyCost">0 ကျပ်</span></div>
+                    <div class="cs-line"><span class="label">ရောင်းစျေး</span><span id="cartTotal">0 ကျပ်</span></div>
+                    <div class="cs-line"><span class="label">အမြတ်</span><span id="cartProfit" style="color:#34d399;">0 ကျပ်</span></div>
+                    <div class="cs-line total"><span>ပေးရမည့်ငွေ</span><span id="grandTotal">0 ကျပ်</span></div>
+                </div>
+                <div class="payment-method">
+                    <button class="active" onclick="selectPayment('cash', this)">💵 ငွေသား</button>
+                    <button onclick="selectPayment('bank', this)">🏦 ငွေလွှဲ</button>
+                    <button onclick="selectPayment('credit', this)">📝 အကြွေး</button>
+                </div>
+                <div id="creditCustomerSelect" style="display:none; margin-bottom:8px;">
+                    <select id="creditCustomerList" style="width:100%;padding:8px 14px;border-radius:30px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;"></select>
+                </div>
+                <div class="actions">
+                    <button class="btn-checkout" onclick="checkout()">✅ ငွေရှင်း</button>
+                    <button class="btn-receipt" onclick="showReceipt()">🧾 ပြေစာ</button>
+                    <button class="btn-clear" onclick="clearCart()">🗑️ ရှင်းမည်</button>
+                    <button class="btn-report" onclick="openReport()">📊 စာရင်းချုပ်</button>
+                    <button class="btn-dayreport" onclick="openDayReport()">📅 နေ့ပိတ်အစီရင်ခံစာ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tabPurchase" class="tab-content">
+        <div style="background:#1e293b; border-radius:20px; padding:16px; border:2px solid #334155;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+                <h2 style="color:#f1f5f9;">📦 အဝယ်တော်</h2>
+                <button class="btn-add" onclick="addPurchaseRecord()">➕ အဝယ်မှတ်တမ်းအသစ်</button>
+            </div>
+            <input type="text" id="purchaseSearch" placeholder="🔍 ပစ္စည်းရှာရန်..." style="width:100%; padding:8px 14px; border-radius:30px; border:2px solid #334155; background:#0f172a; color:#e2e8f0; margin-bottom:12px;" oninput="renderPurchaseRecords()" />
+            <div id="purchaseRecordList"></div>
+        </div>
+    </div>
+
+    <div id="tabExpense" class="tab-content">
+        <div style="background:#1e293b; border-radius:20px; padding:16px; border:2px solid #334155;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+                <h2 style="color:#f1f5f9;">💸 အသုံးစရိတ်</h2>
+                <button class="btn-add" onclick="addExpense()">➕ အသုံးစရိတ်ထည့်မည်</button>
+            </div>
+            <div id="expenseList"></div>
+        </div>
+    </div>
+
+    <div id="tabCredit" class="tab-content">
+        <div style="background:#1e293b; border-radius:20px; padding:16px; border:2px solid #334155;">
+            <h2 style="color:#f1f5f9; margin-bottom:12px;">💳 အကြွေး</h2>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+                <input type="text" id="creditName" placeholder="ဖောက်သည်အမည်" style="flex:1; padding:8px 14px; border-radius:30px; border:2px solid #334155; background:#0f172a; color:#e2e8f0;" />
+                <input type="text" id="creditPhone" placeholder="ဖုန်းနံပါတ်" style="flex:1; padding:8px 14px; border-radius:30px; border:2px solid #334155; background:#0f172a; color:#e2e8f0;" />
+                <input type="number" id="creditAmount" placeholder="အကြွေးပမာဏ" style="flex:1; padding:8px 14px; border-radius:30px; border:2px solid #334155; background:#0f172a; color:#e2e8f0;" />
+                <button onclick="addCredit()" style="padding:8px 20px; border-radius:30px; border:none; background:#f59e0b; color:#0f172a; font-weight:700; cursor:pointer;">➕ ထည့်မည်</button>
+            </div>
+            <div id="creditList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="productModal">
+        <div class="modal">
+            <button class="close-btn" onclick="closeProductModal()">✕</button>
+            <h2 id="productModalTitle">➕ ပစ္စည်းအသစ်</h2>
+            <input type="hidden" id="editProductId" />
+            <label>အမည်</label><input type="text" id="pName" />
+            <label>အမျိုးအစား</label><input type="text" id="pCategory" />
+            <label>အီမိုဂျီ</label><input type="text" id="pEmoji" value="📦" />
+            <label>ဝယ်စျေး</label><input type="number" id="pBuyPrice" />
+            <label>ရောင်းစျေး</label><input type="number" id="pSellPrice" />
+            <label>စတော့</label><input type="number" id="pStock" />
+            <label>ကုန်ဆုံးရက်</label><input type="text" id="pExp" />
+            <label>သတိပေးစတော့</label><input type="number" id="pMinStock" value="5" />
+            <div class="modal-actions">
+                <button class="save-btn" onclick="saveProduct()">💾 သိမ်း</button>
+                <button class="cancel-btn" onclick="closeProductModal()">✖ ပယ်</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="purchaseModal">
+        <div class="modal">
+            <button class="close-btn" onclick="closePurchaseModal()">✕</button>
+            <h2>📦 ကုန်ဝယ်ခြင်း</h2>
+            <div id="purchaseList"></div>
+            <div class="purchase-total" id="purchaseTotal">စုစုပေါင်း: 0 ကျပ်</div>
+            <div class="modal-actions">
+                <button class="save-btn" onclick="confirmPurchase()">✅ ဝယ်မည်</button>
+                <button class="cancel-btn" onclick="closePurchaseModal()">✖ ပယ်</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal">
+            <button class="close-btn" onclick="closeHistoryModal()">✕</button>
+            <h2>📜 အရောင်းမှတ်တမ်း</h2>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin:12px 0;">
+                <input type="date" id="historyDate" style="flex:1; padding:8px 14px; border-radius:30px; border:2px solid #334155; background:#0f172a; color:#e2e8f0;" />
+                <button onclick="filterHistory()" style="padding:8px 20px; border-radius:30px; border:none; background:#3b82f6; color:#fff; font-weight:700; cursor:pointer;">🔍 ရှာ</button>
+                <button onclick="clearHistory()" style="padding:8px 20px; border-radius:30px; border:none; background:#ef4444; color:#fff; font-weight:700; cursor:pointer;">🗑️ ဖျက်</button>
+            </div>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="holidayModal">
+        <div class="modal">
+            <button class="close-btn" onclick="closeHolidayModal()">✕</button>
+            <h2>📅 နေ့ပိတ်</h2>
+            <label>ရက်စွဲ</label><input type="date" id="holidayDate" />
+            <label>အကြောင်းပြချက်</label><input type="text" id="holidayReason" />
+            <div class="modal-actions">
+                <button class="save-btn" onclick="addHoliday()">➕ ထည့်</button>
+            </div>
+            <div id="holidayList" style="margin-top:12px;"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="capitalModal">
+        <div class="modal" style="max-width:500px;">
+            <button class="close-btn" onclick="closeCapitalModal()">✕</button>
+            <h2>💰 မတည်ငွေ</h2>
+            <label>ပမာဏ</label><input type="number" id="capitalInput" />
+            <div class="modal-actions">
+                <button class="save-btn" onclick="saveCapital()">💾 သိမ်း</button>
+                <button class="cancel-btn" onclick="closeCapitalModal()">✖ ပယ်</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="creditModal">
+        <div class="modal">
+            <button class="close-btn" onclick="closeCreditModal()">✕</button>
+            <h2>💳 အကြွေးစီမံ</h2>
+            <div id="creditManagerList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal" style="max-width:1000px;">
+            <button class="close-btn" onclick="closeReport()">✕</button>
+            <h2>📊 စာရင်းချုပ်</h2>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin:12px 0;">
+                <input type="date" id="reportDate" style="flex:1; padding:8px 14px; border-radius:30px; border:2px solid #334155; background:#0f172a; color:#e2e8f0;" />
+                <select id="reportPeriod" onchange="updateReportDate()" style="flex:1; padding:8px 14px; border-radius:30px; border:2px solid #334155; background:#0f172a; color:#e2e8f0;">
+                    <option value="today">ယနေ့</option>
+                    <option value="week">၇ ရက်</option>
+                    <option value="month">လ</option>
+                </select>
+                <button onclick="generateReport()" style="padding:8px 20px; border-radius:30px; border:none; background:#f59e0b; color:#0f172a; font-weight:700; cursor:pointer;">📊 တွက်</button>
+            </div>
+            <div id="reportContent"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="dayReportModal">
+        <div class="modal">
+            <button class="close-btn" onclick="closeDayReport()">✕</button>
+            <h2>📅 နေ့ပိတ်အစီရင်ခံစာ</h2>
+            <input type="date" id="dayReportDate" style="margin:12px 0;padding:8px 14px;border-radius:30px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;width:100%;" />
+            <button onclick="generateDayReport()" style="padding:8px 20px; border-radius:30px; border:none; background:#f59e0b; color:#0f172a; font-weight:700; cursor:pointer;">📊 တွက်</button>
+            <div id="dayReportContent" style="margin-top:12px;"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="reorderModal">
+        <div class="modal">
+            <button class="close-btn" onclick="closeReorderModal()">✕</button>
+            <h2>📦 Auto Re-order</h2>
+            <div id="reorderList"></div>
+            <div class="modal-actions">
+                <button class="save-btn" onclick="confirmReorder()">✅ အကုန်ဝယ်</button>
+                <button class="cancel-btn" onclick="closeReorderModal()">✖ ပယ်</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAbjVNzY2iHsAjvF9L6td-BR84qY6yrvF8",
+  authDomain: "santhiri-pos.firebaseapp.com",
+  projectId: "santhiri-pos",
+  storageBucket: "santhiri-pos.firebasestorage.app",
+  messagingSenderId: "316766468159",
+  appId: "1:316766468159:web:e3363ffebe0c44a24be08a",
+  measurementId: "G-PPYR99FTHN"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+const DATA_DOC = doc(db, 'store', 'data');
+
+let isSyncing = false;
+let lastPullTime = 0;
+
+function setCloudStatus(status, text) {
+    const el = document.getElementById('cloudStatus');
+    const txt = document.getElementById('cloudStatusText');
+    if (!el || !txt) return;
+    el.className = 'cloud-status ' + status;
+    txt.textContent = text;
+}
+
+// ============ DATA LAYER ============
+let products = JSON.parse(localStorage.getItem('sun_products')) || [];
+let cart = [];
+let salesHistory = JSON.parse(localStorage.getItem('sun_sales_history')) || [];
+let holidays = JSON.parse(localStorage.getItem('sun_holidays')) || [];
+let credits = JSON.parse(localStorage.getItem('sun_credits')) || [];
+let capital = parseInt(localStorage.getItem('sun_capital')) || 0;
+let dayReports = JSON.parse(localStorage.getItem('sun_day_reports')) || [];
+let priceHistory = JSON.parse(localStorage.getItem('sun_price_history')) || {};
+let dailyProfits = JSON.parse(localStorage.getItem('sun_daily_profits')) || [];
+let purchaseRecords = JSON.parse(localStorage.getItem('sun_purchase_records')) || [];
+let expenses = JSON.parse(localStorage.getItem('sun_expenses')) || [];
+let nextId = products.length ? Math.max(...products.map(p=>p.id)) + 1 : 1;
+let selectedPayment = 'cash';
+let liveMode = false;
+let liveInterval = null;
+
+// ============ CLOUD SYNC ============
+function getAllData() {
+    return { products, salesHistory, holidays, credits, capital, dayReports,
+             priceHistory, dailyProfits, purchaseRecords, expenses, nextId };
+}
+
+async function saveToCloud() {
+    if (isSyncing) return;
+    isSyncing = true;
+    try {
+        await setDoc(DATA_DOC, { ...getAllData(), updatedAt: new Date().toISOString() });
+        setCloudStatus('online', '☁️ Cloud သိမ်းပြီး');
+        lastPullTime = Date.now();
+    } catch (e) {
+        console.error('Save error:', e);
+        setCloudStatus('offline', '⚠️ သိမ်းမရ');
+    }
+    isSyncing = false;
+}
+
+async function loadFromCloud() {
+    try {
+        setCloudStatus('', 'ချိတ်ဆက်နေသည်...');
+        const snap = await getDoc(DATA_DOC);
+        if (snap.exists()) {
+            const d = snap.data();
+            products = d.products || [];
+            salesHistory = d.salesHistory || [];
+            holidays = d.holidays || [];
+            credits = d.credits || [];
+            capital = d.capital || 0;
+            dayReports = d.dayReports || [];
+            priceHistory = d.priceHistory || {};
+            dailyProfits = d.dailyProfits || [];
+            purchaseRecords = d.purchaseRecords || [];
+            expenses = d.expenses || [];
+            nextId = d.nextId || (products.length ? Math.max(...products.map(p=>p.id)) + 1 : 1);
+            lastPullTime = d.updatedAt ? new Date(d.updatedAt).getTime() : Date.now();
+            localStorage.setItem('sun_products', JSON.stringify(products));
+            localStorage.setItem('sun_sales_history', JSON.stringify(salesHistory));
+            localStorage.setItem('sun_holidays', JSON.stringify(holidays));
+            localStorage.setItem('sun_credits', JSON.stringify(credits));
+            localStorage.setItem('sun_capital', String(capital));
+            localStorage.setItem('sun_day_reports', JSON.stringify(dayReports));
+            localStorage.setItem('sun_price_history', JSON.stringify(priceHistory));
+            localStorage.setItem('sun_daily_profits', JSON.stringify(dailyProfits));
+            localStorage.setItem('sun_purchase_records', JSON.stringify(purchaseRecords));
+            localStorage.setItem('sun_expenses', JSON.stringify(expenses));
+        }
+        setCloudStatus('online', '☁️ Cloud ချိတ်ဆက်ပြီး');
+    } catch (e) {
+        console.error('Load error:', e);
+        setCloudStatus('offline', '⚠️ မချိတ်ဆက်နိုင်');
+    }
+}
+
+async function pullFromCloud() {
+    try {
+        const snap = await getDoc(DATA_DOC);
+        if (snap.exists()) {
+            const d = snap.data();
+            const serverTime = d.updatedAt ? new Date(d.updatedAt).getTime() : 0;
+            if (serverTime > lastPullTime) {
+                products = d.products || [];
+                salesHistory = d.salesHistory || [];
+                holidays = d.holidays || [];
+                credits = d.credits || [];
+                capital = d.capital || 0;
+                dayReports = d.dayReports || [];
+                priceHistory = d.priceHistory || {};
+                dailyProfits = d.dailyProfits || [];
+                purchaseRecords = d.purchaseRecords || [];
+                expenses = d.expenses || [];
+                nextId = d.nextId || 1;
+                lastPullTime = serverTime;
+                localStorage.setItem('sun_products', JSON.stringify(products));
+                localStorage.setItem('sun_sales_history', JSON.stringify(salesHistory));
+                localStorage.setItem('sun_holidays', JSON.stringify(holidays));
+                localStorage.setItem('sun_credits', JSON.stringify(credits));
+                localStorage.setItem('sun_capital', String(capital));
+                localStorage.setItem('sun_day_reports', JSON.stringify(dayReports));
+                localStorage.setItem('sun_purchase_records', JSON.stringify(purchaseRecords));
+                localStorage.setItem('sun_expenses', JSON.stringify(expenses));
+                renderProducts();
+                renderCart();
+                renderPurchaseRecords();
+                renderExpenses();
+                renderCreditList();
+                updateDashboard();
+                setCloudStatus('online', '☁️ Sync ပြီး');
+            }
+        }
+    } catch (e) {
+        console.error('Pull error:', e);
+        setCloudStatus('offline', '⚠️ ချိတ်ဆက်မှု ပြတ်');
+    }
+}
+
+const originalSetItem = localStorage.setItem.bind(localStorage);
+localStorage.setItem = function(key, value) {
+    originalSetItem(key, value);
+    if (key.startsWith('sun_')) {
+        clearTimeout(window._syncDebounce);
+        window._syncDebounce = setTimeout(saveToCloud, 800);
+    }
+};
+
+setInterval(pullFromCloud, 5000);
+
+// ============ CLOCK ============
+function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    const days = ['နေ့', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ'];
+    const months = ['ဇန်','ဖေ','မတ်','ဧပြီ','မေ','ဇွန်','ဇူ','ဩ','စက်','အောက်','နို','ဒီ'];
+    const dateStr = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}, ${days[now.getDay()]}`;
+    const cd = document.getElementById('clockDisplay');
+    const dd = document.getElementById('dateDisplay');
+    const lt = document.getElementById('liveTime');
+    if (cd) cd.textContent = `${h}:${m}:${s}`;
+    if (dd) dd.textContent = dateStr;
+    if (lt) lt.textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============ HOLIDAY ============
+function isHoliday(dateStr) { return holidays.some(h => h.date === dateStr); }
+function checkHolidayToday() {
+    const today = new Date().toISOString().split('T')[0];
+    const badge = document.getElementById('holidayBadge');
+    if (!badge) return false;
+    if (isHoliday(today)) { badge.style.display = 'inline-block'; return true; }
+    else { badge.style.display = 'none'; return false; }
+}
+
+// ============ TOAST ============
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._hide);
+    t._hide = setTimeout(() => { t.classList.remove('show'); }, 3000);
+}
+
+// ============ CAPITAL ============
+function openCapitalManager() {
+    document.getElementById('capitalModal').classList.add('active');
+    document.getElementById('capitalInput').value = capital || '';
+}
+function closeCapitalModal() { document.getElementById('capitalModal').classList.remove('active'); }
+function saveCapital() {
+    const val = parseInt(document.getElementById('capitalInput').value);
+    if (isNaN(val) || val < 0) { showToast('⚠️ ဂဏန်းမှန်မှန်ထည့်ပါ'); return; }
+    capital = val;
+    localStorage.setItem('sun_capital', String(capital));
+    closeCapitalModal();
+    updateDashboard();
+    showToast('✅ မတည်ငွေ သိမ်းပြီး');
+}
+
+// ============ PAYMENT ============
+function selectPayment(method, btn) {
+    selectedPayment = method;
+    document.querySelectorAll('.payment-method button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('creditCustomerSelect').style.display = method === 'credit' ? 'block' : 'none';
+    if (method === 'credit') updateCreditCustomerList();
+}
+function updateCreditCustomerList() {
+    const select = document.getElementById('creditCustomerList');
+    select.innerHTML = '<option value="">ဖောက်သည်ရွေးပါ</option>';
+    credits.forEach(c => { select.innerHTML += `<option value="${c.name}|${c.phone}">${c.name} (${c.phone})</option>`; });
+}
+
+// ============ LOW STOCK ============
+function checkLowStock() {
+    const low = products.filter(p => p.stock <= (p.minStock || 5));
+    const alertDiv = document.getElementById('lowStockAlert');
+    const listDiv = document.getElementById('lowStockAlertList');
+    if (!alertDiv) return;
+    if (low.length === 0) { alertDiv.style.display = 'none'; return; }
+    alertDiv.style.display = 'block';
+    listDiv.innerHTML = low.map(p => `<span>${p.emoji || '📦'} ${p.name} (${p.stock})</span>`).join(' ');
+}
+
+// ============ LIVE ============
+function toggleLive() {
+    liveMode = !liveMode;
+    const el = document.getElementById('liveDashboard');
+    const btn = document.querySelector('.btn-live');
+    if (liveMode) {
+        el.classList.add('active');
+        btn.textContent = '📺 ပိတ်မည်';
+        updateLiveDashboard();
+        if (liveInterval) clearInterval(liveInterval);
+        liveInterval = setInterval(updateLiveDashboard, 5000);
+    } else {
+        el.classList.remove('active');
+        btn.textContent = '📺 Live';
+        if (liveInterval) { clearInterval(liveInterval); liveInterval = null; }
+    }
+}
+function updateLiveDashboard() {
+    const today = new Date().toISOString().split('T')[0];
+    const todaySales = salesHistory.filter(r => r.date === today);
+    const todayTotal = todaySales.reduce((s, r) => s + r.totalSell, 0);
+    const todayProfit = todaySales.reduce((s, r) => s + r.profit, 0);
+    const totalProfit = salesHistory.reduce((s, r) => s + r.profit, 0);
+    if (!document.getElementById('liveTodaySales')) return;
+    document.getElementById('liveTodaySales').textContent = todayTotal.toLocaleString() + ' ကျပ်';
+    document.getElementById('liveTodayCount').textContent = todaySales.length + ' လက်ခံ';
+    document.getElementById('liveTodayProfit').textContent = todayProfit.toLocaleString() + ' ကျပ်';
+    const margin = todayTotal > 0 ? Math.round((todayProfit / todayTotal) * 100) : 0;
+    document.getElementById('liveProfitMargin').textContent = margin + '%';
+    document.getElementById('liveCapital').textContent = capital.toLocaleString() + ' ကျပ်';
+    document.getElementById('liveTotalProfit').textContent = totalProfit.toLocaleString() + ' ကျပ်';
+}
+
+// ============ RENDER PRODUCTS ============
+function renderProducts() {
+    const search = (document.getElementById('searchInput').value || '').toLowerCase();
+    const category = document.getElementById('categoryFilter').value;
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = '';
+    const catSet = new Set(products.map(p => p.category));
+    const catSelect = document.getElementById('categoryFilter');
+    const currentVal = catSelect.value;
+    catSelect.innerHTML = '<option value="all">အားလုံး</option>';
+    catSet.forEach(c => { if (c) catSelect.innerHTML += `<option value="${c}">${c}</option>`; });
+    catSelect.value = currentVal;
+    if (!products.length) {
+        grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#64748b;padding:40px 0;">ပစ္စည်းမရှိသေးပါ</p>';
+        updateDashboard(); checkLowStock(); return;
+    }
+    const filtered = products.filter(p => p.name.toLowerCase().includes(search) && (category === 'all' || p.category === category));
+    filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'p-card';
+        card.innerHTML = `<div class="p-actions"><button class="edit-btn" onclick="event.stopPropagation();openEditProduct(${p.id})">✎</button><button class="del-btn" onclick="event.stopPropagation();deleteProduct(${p.id})">✕</button></div><span class="p-emoji">${p.emoji || '📦'}</span><div class="p-name">${p.name}</div><div class="p-sell">${p.sellPrice.toLocaleString()} ကျပ်</div><div class="p-buy">ဝယ် ${p.buyPrice.toLocaleString()}</div><div class="p-stock">📦 ${p.stock} ကျန် ${p.stock <= (p.minStock||5) ? '⚠️' : ''}</div>${p.exp ? `<div class="p-exp">⏳ ${p.exp}</div>` : ''}`;
+        card.onclick = () => addToCart(p.id);
+        grid.appendChild(card);
+    });
+    updateDashboard(); checkLowStock();
+    document.getElementById('dataInfo').textContent = `ပစ္စည်း ${products.length} ခု`;
+}
+
+// ============ PRODUCT CRUD ============
+function openAddProduct() {
+    document.getElementById('productModalTitle').textContent = '➕ ပစ္စည်းအသစ်';
+    document.getElementById('editProductId').value = '';
+    document.getElementById('pName').value = '';
+    document.getElementById('pCategory').value = '';
+    document.getElementById('pEmoji').value = '📦';
+    document.getElementById('pBuyPrice').value = '';
+    document.getElementById('pSellPrice').value = '';
+    document.getElementById('pStock').value = '';
+    document.getElementById('pExp').value = '';
+    document.getElementById('pMinStock').value = '5';
+    document.getElementById('productModal').classList.add('active');
+}
+function openEditProduct(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('productModalTitle').textContent = '✎ ပြင်မည်';
+    document.getElementById('editProductId').value = id;
+    document.getElementById('pName').value = p.name;
+    document.getElementById('pCategory').value = p.category;
+    document.getElementById('pEmoji').value = p.emoji || '📦';
+    document.getElementById('pBuyPrice').value = p.buyPrice;
+    document.getElementById('pSellPrice').value = p.sellPrice;
+    document.getElementById('pStock').value = p.stock;
+    document.getElementById('pExp').value = p.exp || '';
+    document.getElementById('pMinStock').value = p.minStock || 5;
+    document.getElementById('productModal').classList.add('active');
+}
+function closeProductModal() { document.getElementById('productModal').classList.remove('active'); }
+function saveProduct() {
+    const id = document.getElementById('editProductId').value;
+    const name = document.getElementById('pName').value.trim();
+    const category = document.getElementById('pCategory').value.trim() || 'အထွေထွေ';
+    const emoji = document.getElementById('pEmoji').value.trim() || '📦';
+    const buyPrice = parseInt(document.getElementById('pBuyPrice').value);
+    const sellPrice = parseInt(document.getElementById('pSellPrice').value);
+    const stock = parseInt(document.getElementById('pStock').value);
+    const exp = document.getElementById('pExp').value.trim();
+    const minStock = parseInt(document.getElementById('pMinStock').value) || 5;
+    if (!name || isNaN(buyPrice) || isNaN(sellPrice) || isNaN(stock)) { showToast('⚠️ အကုန်ဖြည့်ပါ'); return; }
+    if (buyPrice >= sellPrice) { showToast('⚠️ ရောင်းစျေးက ဝယ်စျေးထက် ကြီးရမည်'); return; }
+    if (id) {
+        const p = products.find(x => x.id === parseInt(id));
+        if (p) Object.assign(p, { name, category, emoji, buyPrice, sellPrice, stock, exp, minStock });
+    } else {
+        products.push({ id: nextId++, name, category, emoji, buyPrice, sellPrice, stock, exp, minStock });
+    }
+    localStorage.setItem('sun_products', JSON.stringify(products));
+    closeProductModal();
+    renderProducts();
+    showToast('✅ သိမ်းပြီး');
+}
+function deleteProduct(id) {
+    if (!confirm('ဖျက်မှာလား?')) return;
+    products = products.filter(p => p.id !== id);
+    localStorage.setItem('sun_products', JSON.stringify(products));
+    renderProducts();
+    showToast('🗑️ ဖျက်ပြီး');
+}
+
+// ============ CART ============
+function addToCart(productId) {
+    if (checkHolidayToday()) { showToast('🔴 ယနေ့ နေ့ပိတ်'); return; }
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    if (product.stock <= 0) { showToast('⚠️ ကုန်သွားပြီ'); return; }
+    const existing = cart.find(item => item.id === productId);
+    if (existing) {
+        if (existing.qty >= product.stock) { showToast('⚠️ စတော့ထက်ပို မရ'); return; }
+        existing.qty++;
+    } else {
+        cart.push({ ...product, qty: 1 });
+    }
+    renderCart();
+    showToast(`✅ ${product.name} ထည့်ပြီး`);
+}
+function renderCart() {
+    const container = document.getElementById('cartItems');
+    if (!cart.length) {
+        container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px 0;">ပစ္စည်းမရှိသေးပါ</p>';
+        updateCartSummary(); return;
+    }
+    let html = '';
+    cart.forEach((item, idx) => {
+        html += `<div class="cart-item"><div class="ci-info"><div class="ci-name">${item.emoji || '📦'} ${item.name}</div><div class="ci-detail">${item.sellPrice.toLocaleString()} x ${item.qty}</div></div><div class="ci-qty"><button onclick="changeQty(${idx},-1)">−</button><span>${item.qty}</span><button onclick="changeQty(${idx},1)">+</button></div><div class="ci-total">${(item.sellPrice*item.qty).toLocaleString()}</div></div>`;
+    });
+    container.innerHTML = html;
+    updateCartSummary();
+}
+function changeQty(index, delta) {
+    const item = cart[index];
+    if (!item) return;
+    const product = products.find(p => p.id === item.id);
+    const newQty = item.qty + delta;
+    if (newQty < 1) cart.splice(index, 1);
+    else if (product && newQty > product.stock) { showToast('⚠️ စတော့ထက်ပို မရ'); return; }
+    else item.qty = newQty;
+    renderCart();
+}
+function updateCartSummary() {
+    let totalSell = 0, totalBuy = 0, count = 0;
+    cart.forEach(item => { totalSell += item.sellPrice*item.qty; totalBuy += item.buyPrice*item.qty; count += item.qty; });
+    document.getElementById('itemCount').textContent = count;
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('totalBuyCost').textContent = totalBuy.toLocaleString() + ' ကျပ်';
+    document.getElementById('cartTotal').textContent = totalSell.toLocaleString() + ' ကျပ်';
+    document.getElementById('cartProfit').textContent = (totalSell-totalBuy).toLocaleString() + ' ကျပ်';
+    document.getElementById('grandTotal').textContent = totalSell.toLocaleString() + ' ကျပ်';
+}
+function clearCart() {
+    if (!cart.length) return;
+    if (confirm('ရှင်းမှာလား?')) { cart = []; renderCart(); }
+}
+
+// ============ CHECKOUT ============
+function checkout() {
+    if (checkHolidayToday()) { showToast('🔴 ယနေ့ နေ့ပိတ်'); return; }
+    if (!cart.length) { showToast('⚠️ ပစ္စည်းမရှိ'); return; }
+    if (selectedPayment === 'credit') {
+        const selected = document.getElementById('creditCustomerList').value;
+        if (!selected) { showToast('⚠️ ဖောက်သည်ရွေး'); return; }
+        const [name, phone] = selected.split('|');
+        const customer = credits.find(c => c.phone === phone);
+        if (customer) {
+            let total = 0;
+            cart.forEach(item => { total += item.sellPrice*item.qty; });
+            customer.balance += total;
+            localStorage.setItem('sun_credits', JSON.stringify(credits));
+        }
+    }
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    let totalSell = 0, totalBuy = 0;
+    const items = cart.map(item => {
+        totalSell += item.sellPrice*item.qty;
+        totalBuy += item.buyPrice*item.qty;
+        const p = products.find(x => x.id === item.id);
+        if (p) p.stock -= item.qty;
+        return { id: item.id, name: item.name, qty: item.qty, buyPrice: item.buyPrice, sellPrice: item.sellPrice };
+    });
+    const profit = totalSell - totalBuy;
+    salesHistory.push({ date: dateStr, time: now.toLocaleTimeString(), items, totalSell, totalBuy, profit, paymentMethod: selectedPayment });
+    const existingDay = dayReports.find(r => r.date === dateStr);
+    if (existingDay) {
+        existingDay.totalSell += totalSell;
+        existingDay.totalBuy += totalBuy;
+        existingDay.profit += profit;
+        if (selectedPayment === 'credit') existingDay.credit += totalSell;
+    } else {
+        dayReports.push({ date: dateStr, totalSell, totalBuy, profit, credit: selectedPayment === 'credit' ? totalSell : 0 });
+    }
+    const existingProfit = dailyProfits.find(p => p.date === dateStr);
+    if (existingProfit) existingProfit.amount += profit;
+    else dailyProfits.push({ date: dateStr, amount: profit });
+    localStorage.setItem('sun_daily_profits', JSON.stringify(dailyProfits));
+    localStorage.setItem('sun_day_reports', JSON.stringify(dayReports));
+    localStorage.setItem('sun_sales_history', JSON.stringify(salesHistory));
+    localStorage.setItem('sun_products', JSON.stringify(products));
+    showToast(`✅ ရောင်းပြီး — ${totalSell.toLocaleString()} ကျပ်`);
+    cart = [];
+    renderCart();
+    renderProducts();
+    updateDashboard();
+}
+
+// ============ RECEIPT ============
+function showReceipt() {
+    if (!cart.length) { showToast('⚠️ ပစ္စည်းမရှိ'); return; }
+    let r = '═══════════════════════\n';
+    r += '  🌟 ဆန်းသီရိ ကုန်စုံဆိုင်\n';
+    r += '  📞 09672124213\n';
+    r += '═══════════════════════\n';
+    r += `  ${new Date().toLocaleString()}\n`;
+    r += '───────────────────────\n';
+    let total = 0;
+    cart.forEach(item => {
+        const sub = item.sellPrice*item.qty;
+        r += `  ${item.name}\n  ${item.sellPrice} x ${item.qty} = ${sub.toLocaleString()}\n`;
+        total += sub;
+    });
+    r += '───────────────────────\n';
+    r += `  စုစုပေါင်း: ${total.toLocaleString()} ကျပ်\n`;
+    r += '═══════════════════════\n';
+    alert(r);
+}
+
+// ============ DASHBOARD ============
+function updateDashboard() {
+    document.getElementById('totalProducts').textContent = products.length;
+    const today = new Date().toISOString().split('T')[0];
+    const todaySales = salesHistory.filter(r => r.date === today);
+    const todayTotal = todaySales.reduce((s, r) => s + r.totalSell, 0);
+    const todayProfit = todaySales.reduce((s, r) => s + r.profit, 0);
+    document.getElementById('todaySales').textContent = todayTotal.toLocaleString();
+    document.getElementById('todayProfit').textContent = todayProfit.toLocaleString();
+    document.getElementById('todayTransactions').textContent = todaySales.length;
+    document.getElementById('todayCount').textContent = todaySales.length + ' လက်ခံ';
+    const margin = todayTotal > 0 ? Math.round((todayProfit/todayTotal)*100) : 0;
+    document.getElementById('profitMargin').textContent = margin + '%';
+    const low = products.filter(p => p.stock <= (p.minStock||5));
+    document.getElementById('lowStockCount').textContent = low.length;
+    document.getElementById('lowStockList').textContent = low.slice(0,3).map(p => p.name).join(', ');
+    const totalCredit = credits.reduce((s,c) => s + c.balance, 0);
+    document.getElementById('totalCredit').textContent = totalCredit.toLocaleString();
+    document.getElementById('creditCount').textContent = credits.length + ' ဦး';
+    document.getElementById('capitalDisplay').textContent = capital.toLocaleString();
+    const sortedProfits = [...dailyProfits].sort((a, b) => b.date.localeCompare(a.date));
+    const last7 = sortedProfits.slice(0, 7);
+    const weeklyTotal = last7.reduce((s, p) => s + p.amount, 0);
+    document.getElementById('weeklyProfitDisplay').textContent = weeklyTotal.toLocaleString();
+}
+
+// ============ PURCHASE ============
+function openPurchase() {
+    const container = document.getElementById('purchaseList');
+    let html = '<table class="purchase-table"><thead><tr><th>ပစ္စည်း</th><th>ကျန်</th><th>ဝယ်မည်</th></tr></thead><tbody>';
+    products.forEach(p => {
+        html += `<tr><td>${p.emoji||'📦'} ${p.name}</td><td>${p.stock}</td><td><input type="number" class="purchase-qty" data-id="${p.id}" value="0" min="0" style="width:80px;padding:6px 10px;border-radius:20px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;" /></td></tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+    document.getElementById('purchaseTotal').textContent = 'စုစုပေါင်း: 0 ကျပ်';
+    document.getElementById('purchaseModal').classList.add('active');
+}
+function closePurchaseModal() { document.getElementById('purchaseModal').classList.remove('active'); }
+function confirmPurchase() {
+    let purchased = false;
+    const purchaseItems = [];
+    document.querySelectorAll('.purchase-qty').forEach(input => {
+        const id = parseInt(input.dataset.id);
+        const qty = parseInt(input.value) || 0;
+        if (qty > 0) {
+            const p = products.find(x => x.id === id);
+            if (p) {
+                p.stock += qty;
+                purchased = true;
+                purchaseItems.push({ name: p.name, qty, buyPrice: p.buyPrice, total: p.buyPrice*qty });
+            }
+        }
+    });
+    if (!purchased) { showToast('⚠️ ရွေးပါ'); return; }
+    purchaseRecords.push({
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString(),
+        items: purchaseItems,
+        total: purchaseItems.reduce((s,i) => s + i.total, 0)
+    });
+    localStorage.setItem('sun_purchase_records', JSON.stringify(purchaseRecords));
+    localStorage.setItem('sun_products', JSON.stringify(products));
+    closePurchaseModal();
+    renderProducts();
+    renderPurchaseRecords();
+    showToast('✅ ကုန်ဝယ်ပြီး');
+}
+function renderPurchaseRecords() {
+    const container = document.getElementById('purchaseRecordList');
+    if (!container) return;
+    if (!purchaseRecords.length) { container.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:20px;">မှတ်တမ်းမရှိ</p>'; return; }
+    let html = '';
+    purchaseRecords.slice().reverse().forEach((r, idx) => {
+        const realIdx = purchaseRecords.length - 1 - idx;
+        html += `<div class="purchase-record-item"><div class="info"><div style="color:#fbbf24;font-weight:600;">📅 ${r.date} ${r.time}</div><div style="font-size:13px;color:#94a3b8;">${r.items.map(i=>i.name+' x'+i.qty).join(', ')}</div></div><div style="color:#f59e0b;font-weight:700;">${r.total.toLocaleString()} ကျပ်</div><button class="del-pr" onclick="deletePurchaseRecord(${realIdx})">✕</button></div>`;
+    });
+    container.innerHTML = html;
+}
+function addPurchaseRecord() { openPurchase(); }
+function deletePurchaseRecord(idx) {
+    if (!confirm('ဖျက်မှာလား?')) return;
+    purchaseRecords.splice(idx, 1);
+    localStorage.setItem('sun_purchase_records', JSON.stringify(purchaseRecords));
+    renderPurchaseRecords();
+}
+
+// ============ EXPENSES ============
+function renderExpenses() {
+    const container = document.getElementById('expenseList');
+    if (!container) return;
+    if (!expenses.length) { container.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:20px;">မရှိ</p>'; return; }
+    let html = '';
+    expenses.slice().reverse().forEach((e, idx) => {
+        const realIdx = expenses.length - 1 - idx;
+        html += `<div class="expense-item"><div class="info"><div style="color:#fbbf24;">📅 ${e.date}</div><div style="font-size:13px;color:#94a3b8;">${e.category} ${e.note||''}</div></div><div style="color:#f87171;font-weight:700;">${e.amount.toLocaleString()} ကျပ်</div><button class="del-e" onclick="deleteExpense(${realIdx})">✕</button></div>`;
+    });
+    container.innerHTML = html;
+}
+function addExpense() {
+    const date = prompt('ရက်စွဲ (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+    if (!date) return;
+    const category = prompt('အမျိုးအစား:');
+    if (!category) return;
+    const amount = parseInt(prompt('ပမာဏ:'));
+    if (isNaN(amount) || amount <= 0) { showToast('⚠️ ဂဏန်းမှန်'); return; }
+    const note = prompt('မှတ်ချက်:') || '';
+    expenses.push({ date, category, amount, note });
+    localStorage.setItem('sun_expenses', JSON.stringify(expenses));
+    renderExpenses();
+    showToast('✅ ထည့်ပြီး');
+}
+function deleteExpense(idx) {
+    if (!confirm('ဖျက်မှာလား?')) return;
+    expenses.splice(idx, 1);
+    localStorage.setItem('sun_expenses', JSON.stringify(expenses));
+    renderExpenses();
+}
+
+// ============ CREDIT ============
+function renderCreditList() {
+    const container = document.getElementById('creditList');
+    if (!container) return;
+    if (!credits.length) { container.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:20px;">မရှိ</p>'; return; }
+    let html = '';
+    credits.forEach((c, idx) => {
+        html += `<div class="credit-item"><div class="info"><div style="color:#f1f5f9;font-weight:600;">${c.name}</div><div class="phone">📞 ${c.phone}</div></div><div class="amount">${c.balance.toLocaleString()} ကျပ်</div><button class="pay-c" onclick="payCredit(${idx})">✅</button><button class="del-c" onclick="deleteCredit(${idx})">✕</button></div>`;
+    });
+    container.innerHTML = html;
+}
+function addCredit() {
+    const name = document.getElementById('creditName').value.trim();
+    const phone = document.getElementById('creditPhone').value.trim();
+    const amount = parseInt(document.getElementById('creditAmount').value);
+    if (!name || !phone || isNaN(amount) || amount <= 0) { showToast('⚠️ ဖြည့်ပါ'); return; }
+    const existing = credits.find(c => c.phone === phone);
+    if (existing) existing.balance += amount;
+    else credits.push({ name, phone, balance: amount });
+    localStorage.setItem('sun_credits', JSON.stringify(credits));
+    document.getElementById('creditName').value = '';
+    document.getElementById('creditPhone').value = '';
+    document.getElementById('creditAmount').value = '';
+    renderCreditList();
+    updateDashboard();
+    showToast('✅ ထည့်ပြီး');
+}
+function payCredit(idx) {
+    const c = credits[idx];
+    const amount = parseInt(prompt('ဆပ်မည့်ပမာဏ:', c.balance));
+    if (isNaN(amount) || amount <= 0) return;
+    c.balance -= amount;
+    if (c.balance <= 0) credits.splice(idx, 1);
+    localStorage.setItem('sun_credits', JSON.stringify(credits));
+    renderCreditList();
+    updateDashboard();
+    showToast('✅ ဆပ်ပြီး');
+}
+function deleteCredit(idx) {
+    if (!confirm('ဖျက်မှာလား?')) return;
+    credits.splice(idx, 1);
+    localStorage.setItem('sun_credits', JSON.stringify(credits));
+    renderCreditList();
+    updateDashboard();
+}
+function openCreditManager() {
+    document.getElementById('creditModal').classList.add('active');
+    const container = document.getElementById('creditManagerList');
+    if (!credits.length) { container.innerHTML = '<p style="color:#94a3b8;text-align:center;">မရှိ</p>'; return; }
+    container.innerHTML = credits.map(c => `<div style="padding:8px;background:#0f172a;border-radius:10px;margin-bottom:6px;"><b>${c.name}</b> — ${c.phone} — ${c.balance.toLocaleString()} ကျပ်</div>`).join('');
+}
+function closeCreditModal() { document.getElementById('creditModal').classList.remove('active'); }
+
+// ============ HISTORY ============
+function openHistoryManager() {
+    document.getElementById('historyModal').classList.add('active');
+    document.getElementById('historyDate').value = new Date().toISOString().split('T')[0];
+    filterHistory();
+}
+function closeHistoryModal() { document.getElementById('historyModal').classList.remove('active'); }
+function filterHistory() {
+    const date = document.getElementById('historyDate').value;
+    const container = document.getElementById('historyList');
+    let filtered = date ? salesHistory.filter(r => r.date === date) : salesHistory;
+    if (!filtered.length) { container.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:12px;">မရှိ</p>'; return; }
+    let html = '';
+    filtered.slice().reverse().forEach((r) => {
+        html += `<div class="history-item"><div class="info"><div class="date">📅 ${r.date} ${r.time}</div><div class="detail">${r.items.map(i=>i.name+' x'+i.qty).join(', ')}</div><div style="font-size:12px;color:#94a3b8;">${r.paymentMethod||'cash'}</div></div><div class="amount">${r.totalSell.toLocaleString()} ကျပ်</div></div>`;
+    });
+    container.innerHTML = html;
+}
+function clearHistory() {
+    if (!salesHistory.length) return;
+    if (!confirm('အားလုံးဖျက်မှာလား?')) return;
+    salesHistory = [];
+    localStorage.setItem('sun_sales_history', JSON.stringify(salesHistory));
+    filterHistory();
+    updateDashboard();
+}
+
+// ============ HOLIDAY ============
+function openHolidayManager() {
+    document.getElementById('holidayModal').classList.add('active');
+    renderHolidayList();
+}
+function closeHolidayModal() { document.getElementById('holidayModal').classList.remove('active'); }
+function renderHolidayList() {
+    const container = document.getElementById('holidayList');
+    if (!holidays.length) { container.innerHTML = '<p style="color:#94a3b8;text-align:center;">မရှိ</p>'; return; }
+    container.innerHTML = holidays.map((h, idx) => `<div style="padding:8px;background:#0f172a;border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;"><span>📅 ${h.date} ${h.reason||''}</span><button onclick="removeHoliday(${idx})" style="padding:4px 12px;border:none;border-radius:20px;background:#ef4444;color:#fff;">✕</button></div>`).join('');
+}
+function addHoliday() {
+    const date = document.getElementById('holidayDate').value;
+    const reason = document.getElementById('holidayReason').value.trim();
+    if (!date) { showToast('⚠️ ရက်ရွေး'); return; }
+    if (isHoliday(date)) { showToast('⚠️ ရှိပြီး'); return; }
+    holidays.push({ date, reason });
+    localStorage.setItem('sun_holidays', JSON.stringify(holidays));
+    document.getElementById('holidayDate').value = '';
+    document.getElementById('holidayReason').value = '';
+    renderHolidayList();
+    checkHolidayToday();
+    showToast('✅ ထည့်ပြီး');
+}
+function removeHoliday(idx) {
+    if (!confirm('ဖျက်မှာလား?')) return;
+    holidays.splice(idx, 1);
+    localStorage.setItem('sun_holidays', JSON.stringify(holidays));
+    renderHolidayList();
+    checkHolidayToday();
+}
+
+// ============ DAY REPORT ============
+function openDayReport() {
+    document.getElementById('dayReportModal').classList.add('active');
+    document.getElementById('dayReportDate').value = new Date().toISOString().split('T')[0];
+    generateDayReport();
+}
+function closeDayReport() { document.getElementById('dayReportModal').classList.remove('active'); }
+function generateDayReport() {
+    const date = document.getElementById('dayReportDate').value;
+    const daySales = salesHistory.filter(r => r.date === date);
+    const totalSell = daySales.reduce((s,r) => s + r.totalSell, 0);
+    const totalBuy = daySales.reduce((s,r) => s + r.totalBuy, 0);
+    const profit = totalSell - totalBuy;
+    const creditTotal = daySales.filter(r => r.paymentMethod === 'credit').reduce((s,r) => s + r.totalSell, 0);
+    document.getElementById('dayReportContent').innerHTML = `
+        <div style="background:#0f172a;padding:12px;border-radius:10px;margin-bottom:8px;"><b>💰 ရောင်းရငွေ:</b> ${totalSell.toLocaleString()} ကျပ်</div>
+        <div style="background:#0f172a;padding:12px;border-radius:10px;margin-bottom:8px;"><b>💸 ဝယ်ရငွေ:</b> ${totalBuy.toLocaleString()} ကျပ်</div>
+        <div style="background:#0f172a;padding:12px;border-radius:10px;margin-bottom:8px;"><b>📈 အမြတ်:</b> <span style="color:#34d399;">${profit.toLocaleString()} ကျပ်</span></div>
+        <div style="background:#0f172a;padding:12px;border-radius:10px;"><b>💳 အကြွေး:</b> <span style="color:#f472b6;">${creditTotal.toLocaleString()} ကျပ်</span></div>
+    `;
+}
+
+// ============ REORDER ============
+function showReorderList() {
+    const low = products.filter(p => p.stock <= (p.minStock||5));
+    const container = document.getElementById('reorderList');
+    if (!low.length) { container.innerHTML = '<p style="color:#34d399;">✅ အားလုံးလုံလောက်</p>'; }
+    else {
+        container.innerHTML = low.map(p => `<div class="reorder-item"><span>${p.emoji||'📦'} ${p.name}</span><span style="color:#f87171;">ကျန် ${p.stock}</span></div>`).join('');
+    }
+    document.getElementById('reorderModal').classList.add('active');
+}
+function closeReorderModal() { document.getElementById('reorderModal').classList.remove('active'); }
+function confirmReorder() {
+    const low = products.filter(p => p.stock <= (p.minStock||5));
+    low.forEach(p => { p.stock += (p.minStock||5) - p.stock + 5; });
+    localStorage.setItem('sun_products', JSON.stringify(products));
+    closeReorderModal();
+    renderProducts();
+    showToast('✅ အကုန်ဝယ်ပြီး');
+}
+
+// ============ REPORT ============
+function openReport() {
+    document.getElementById('reportModal').classList.add('active');
+    document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
+    generateReport();
+}
+function closeReport() { document.getElementById('reportModal').classList.remove('active'); }
+function updateReportDate() {}
+function generateReport() {
+    const endDate = document.getElementById('reportDate').value;
+    const period = document.getElementById('reportPeriod').value;
+    let startDate = new Date(endDate);
+    if (period === 'week') startDate.setDate(startDate.getDate() - 6);
+    else if (period === 'month') startDate.setDate(1);
+    const startStr = startDate.toISOString().split('T')[0];
+    const filtered = salesHistory.filter(r => r.date >= startStr && r.date <= endDate);
+    const agg = {};
+    filtered.forEach(record => {
+        record.items.forEach(item => {
+            if (!agg[item.name]) agg[item.name] = { qty: 0, buyTotal: 0, sellTotal: 0 };
+            agg[item.name].qty += item.qty;
+            agg[item.name].buyTotal += item.buyPrice*item.qty;
+            agg[item.name].sellTotal += item.sellPrice*item.qty;
+        });
+    });
+    let html = '<table style="width:100%;border-collapse:collapse;font-size:14px;"><thead style="background:#0f172a;"><tr><th style="padding:8px;">အမည်</th><th>အရေအတွက်</th><th>ရောင်းစျေး</th><th>အမြတ်</th></tr></thead><tbody>';
+    let gSell = 0, gBuy = 0;
+    for (const [name, d] of Object.entries(agg)) {
+        const profit = d.sellTotal - d.buyTotal;
+        gSell += d.sellTotal; gBuy += d.buyTotal;
+        html += `<tr style="border-bottom:1px solid #334155;"><td style="padding:6px;">${name}</td><td>${d.qty}</td><td>${d.sellTotal.toLocaleString()}</td><td style="color:#34d399;">${profit.toLocaleString()}</td></tr>`;
+    }
+    html += `</tbody><tfoot><tr style="background:#0f172a;font-weight:700;"><td colspan="2">စုစုပေါင်း</td><td>${gSell.toLocaleString()}</td><td style="color:#34d399;">${(gSell-gBuy).toLocaleString()}</td></tr></tfoot></table>`;
+    document.getElementById('reportContent').innerHTML = html;
+}
+
+// ============ SAMPLE / CLEAR ============
+function loadSampleData() {
+    if (products.length && !confirm('ပစ္စည်းရှိပြီး။ ထပ်ထည့်မှာလား?')) return;
+    const samples = [
+        { name: "ကိုကာကိုလာ ၁.၅လီ", category: "သောက်စရာ", emoji: "🥤", buyPrice: 900, sellPrice: 1200, stock: 20, exp: "2026-12", minStock: 5 },
+        { name: "ဖရက်စ် ရေသန့်", category: "သောက်စရာ", emoji: "💧", buyPrice: 650, sellPrice: 900, stock: 15, exp: "", minStock: 5 },
+        { name: "မြေပဲစေ့ကြော်", category: "မုန့်", emoji: "🥜", buyPrice: 1800, sellPrice: 2500, stock: 8, exp: "2026-10", minStock: 3 },
+        { name: "ခေါက်ဆွဲခြောက်", category: "ဟင်းခတ်", emoji: "🍜", buyPrice: 1300, sellPrice: 1800, stock: 30, exp: "2027-01", minStock: 5 },
+        { name: "ကြက်သားလုံး", category: "အေးခဲ", emoji: "🍗", buyPrice: 3200, sellPrice: 4500, stock: 10, exp: "2026-09", minStock: 3 }
+    ];
+    samples.forEach(s => products.push({ id: nextId++, ...s }));
+    localStorage.setItem('sun_products', JSON.stringify(products));
+    renderProducts();
+    showToast('✅ နမူနာ ၅ ခု ထည့်ပြီး');
+}
+function clearAllData() {
+    if (!confirm('ဒေတာအားလုံး ရှင်းမှာလား?')) return;
+    if (!confirm('သေချာလား? ပြန်မရနိုင်ပါ')) return;
+    products = []; salesHistory = []; credits = []; holidays = [];
+    dayReports = []; purchaseRecords = []; expenses = []; cart = [];
+    dailyProfits = []; nextId = 1; capital = 0;
+    ['sun_products','sun_sales_history','sun_credits','sun_holidays',
+     'sun_day_reports','sun_capital','sun_purchase_records','sun_expenses','sun_daily_profits']
+    .forEach(k => localStorage.removeItem(k));
+    renderProducts(); renderCart(); renderPurchaseRecords(); renderExpenses();
+    renderCreditList(); updateDashboard(); checkHolidayToday();
+    showToast('🗑️ ရှင်းပြီး');
+}
+
+// ============ TABS ============
+document.querySelectorAll('.tabs button').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.getElementById(this.dataset.tab).classList.add('active');
+        if (this.dataset.tab === 'tabPurchase') renderPurchaseRecords();
+        if (this.dataset.tab === 'tabExpense') renderExpenses();
+        if (this.dataset.tab === 'tabCredit') renderCreditList();
+    });
+});
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
+});
+
+// ============ INIT ============
+(async function() {
+    await loadFromCloud();
+    renderProducts();
+    renderPurchaseRecords();
+    renderExpenses();
+    renderCreditList();
+    updateDashboard();
+    checkHolidayToday();
+    pullFromCloud();
+})();
+
+// ============ WINDOW EXPOSE ============
+window.openAddProduct = openAddProduct;
+window.openEditProduct = openEditProduct;
+window.closeProductModal = closeProductModal;
+window.saveProduct = saveProduct;
+window.deleteProduct = deleteProduct;
+window.addToCart = addToCart;
+window.changeQty = changeQty;
+window.clearCart = clearCart;
+window.selectPayment = selectPayment;
+window.checkout = checkout;
+window.showReceipt = showReceipt;
+window.openPurchase = openPurchase;
+window.closePurchaseModal = closePurchaseModal;
+window.confirmPurchase = confirmPurchase;
+window.addPurchaseRecord = addPurchaseRecord;
+window.deletePurchaseRecord = deletePurchaseRecord;
+window.renderPurchaseRecords = renderPurchaseRecords;
+window.addExpense = addExpense;
+window.deleteExpense = deleteExpense;
+window.renderExpenses = renderExpenses;
+window.addCredit = addCredit;
+window.payCredit = payCredit;
+window.deleteCredit = deleteCredit;
+window.openCreditManager = openCreditManager;
+window.closeCreditModal = closeCreditModal;
+window.renderCreditList = renderCreditList;
+window.openHistoryManager = openHistoryManager;
+window.closeHistoryModal = closeHistoryModal;
+window.filterHistory = filterHistory;
+window.clearHistory = clearHistory;
+window.openHolidayManager = openHolidayManager;
+window.closeHolidayModal = closeHolidayModal;
+window.addHoliday = addHoliday;
+window.removeHoliday = removeHoliday;
+window.openCapitalManager = openCapitalManager;
+window.closeCapitalModal = closeCapitalModal;
+window.saveCapital = saveCapital;
+window.openDayReport = openDayReport;
+window.closeDayReport = closeDayReport;
+window.generateDayReport = generateDayReport;
+window.showReorderList = showReorderList;
+window.closeReorderModal = closeReorderModal;
+window.confirmReorder = confirmReorder;
+window.openReport = openReport;
+window.closeReport = closeReport;
+window.generateReport = generateReport;
+window.updateReportDate = updateReportDate;
+window.loadSampleData = loadSampleData;
+window.clearAllData = clearAllData;
+window.toggleLive = toggleLive;
+window.showToast = showToast;
+window.renderProducts = renderProducts;
+window.updateDashboard = updateDashboard;
+</script>
+
+</body>
+</html>
